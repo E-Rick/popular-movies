@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { withRouter, useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useHistory } from 'react-router-dom';
 
 // Material UI
 import Typography from '@material-ui/core/Typography';
@@ -39,33 +39,45 @@ const useStyles = makeStyles(theme => ({
 const MoviesListContainer = props => {
 	const [movies, setMovies] = useState([]);
 	const [sortBy, setSortBy] = useState('desc');
-	const [year, setYear] = useState('2020');
 	const classes = useStyles();
+	let { year } = useParams();
+	let history = useHistory();
 
-	const fetchMoviesByYear = async (year, sortValue) => {
-		try {
-			props.history.push(`/${year}`);
-			const payload = await fetchByYear(year, sortValue);
-			setMovies(payload);
-		} catch (error) {
-			console.log(error);
-		}
-	};
+	year = !!year && year > '2015' && year <= '2020' ? year : '2020';
+	/**
+	 * This will memoize the parent so that way on rerenders it doesnt rerender childs.
+	 */
+	const fetchMoviesByYear = useCallback(
+		async () => {
+			try {
+				history.push(`/${year}`);
+				document.title = `Most Popular Movies ${year}`;
+				// sessionStorage.setItem('path', props.history.location);
+				const payload = await fetchByYear(year, sortBy);
+				setMovies(payload);
+			} catch (error) {
+				console.log(error);
+			}
+		},
+		[history, year, sortBy]
+	);
 
 	useEffect(
 		() => {
-			fetchMoviesByYear(year, sortBy);
+			fetchMoviesByYear();
 		},
-		[year, sortBy]
+		[fetchMoviesByYear]
 	);
 
 	const handleSortChange = event => {
 		setSortBy(event.target.value);
 	};
 	const handleYearChange = event => {
-		setYear(event.target.value);
+		year = event.target.value;
+		history.push(`/${year}`);
 	};
 
+	// note to limit animations to 200-300 on mobile and 400-450 on tablets+
 	const renderMovieFilter = () => {
 		return (
 			<Grid justify={'flex-end'} container style={{ margin: '8px auto 16px auto' }}>
@@ -133,4 +145,4 @@ const MoviesListContainer = props => {
 
 MoviesListContainer.propTypes = {};
 
-export default withRouter(MoviesListContainer);
+export default MoviesListContainer;

@@ -1,11 +1,10 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, Fragment, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import Backdrop from '@material-ui/core/Backdrop';
-import Fade from '@material-ui/core/Fade';
-import { useParams } from 'react-router';
-import { withRouter } from 'react-router-dom';
+import Zoom from '@material-ui/core/Zoom';
+import { useParams, useHistory } from 'react-router';
 
 const useStyles = makeStyles(theme => ({
 	modal: {
@@ -23,39 +22,38 @@ const useStyles = makeStyles(theme => ({
 	}
 }));
 
-const VideoDetail = props => {
+const VideoDetail = () => {
 	const [open, setOpen] = useState(false);
 	const [url, setUrl] = useState('');
 	const classes = useStyles();
 	const { year, id, key } = useParams();
+	let history = useHistory();
 
 	// base urls for videos
 	// const vimeo = 'https://vimeo.com/';
 	const youtube = `https://www.youtube.com/embed/`;
 
-	// (`${youtube}${videos[0].key}`
-	const handleOpen = () => {
-		setOpen(true);
-	};
-
 	const handleClose = () => {
-		props.history.push(`/${year}/movie/${id}`);
 		setOpen(false);
+		history.push(`/${year}/movie/${id}`);
 	};
 
-	const checkUrl = () => {
-		if (key) {
+	// (`${youtube}${videos[0].key}`
+	const handleOpen = useCallback(
+		() => {
 			setUrl(`${youtube}${key}`);
-			handleOpen();
-		}
-	};
+			setOpen(true);
+		},
+		[youtube, key]
+	);
 
-	useEffect(() => {
-		checkUrl();
-		return () => {
-			handleClose();
-		};
-	}, []);
+	useEffect(
+		() => {
+			document.title = `Movie Video`;
+			handleOpen();
+		},
+		[handleOpen]
+	);
 
 	return (
 		<Fragment>
@@ -70,7 +68,7 @@ const VideoDetail = props => {
 				BackdropProps={{
 					timeout: 500
 				}}>
-				<Fade in={open} timeout={1000}>
+				<Zoom in={open} timeout={300}>
 					<div className={classes.videoWrapper}>
 						<iframe
 							title={'Movie Video'}
@@ -82,7 +80,7 @@ const VideoDetail = props => {
 							allowFullScreen
 						/>
 					</div>
-				</Fade>
+				</Zoom>
 			</Modal>
 		</Fragment>
 	);
@@ -93,4 +91,4 @@ VideoDetail.propTypes = {
 	url: PropTypes.string
 };
 
-export default withRouter(VideoDetail);
+export default VideoDetail;

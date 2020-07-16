@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useHistory } from 'react-router-dom';
 
 // Material UI
 import { makeStyles } from '@material-ui/core/styles';
@@ -50,40 +50,47 @@ const useStyles = makeStyles(theme => ({
 	}
 }));
 
-const MovieDetailContainer = () => {
+const MovieDetailContainer = props => {
 	const classes = useStyles();
 	const [movie, setMovie] = useState({});
 	const [videoKey, setVideoKey] = useState('');
 	let { year, id } = useParams();
+	let history = useHistory();
+	let location = useLocation();
 
 	// image url for image placeholder
 	const noImageUrl =
 		'https://www.themoviedb.org/assets/2/v4/glyphicons/basic/glyphicons-basic-38-picture-grey-c2ebdbb057f2a7614185931650f8cee23fa137b93812ccb132b9df511df1cfac.svg';
 
 	// Note: The API /discovery has poster urls that /details doesn't
-	const fetchMovieById = async id => {
-		try {
-			const payload = await fetchById(id);
-			setMovie(payload);
+	const fetchMovieById = useCallback(
+		async () => {
+			try {
+				const payload = await fetchById(id);
+				document.title = payload.title;
+				history.replace(location);
+				setMovie(payload);
 
-			// array of videos
-			const videos = payload.videos.results;
+				// array of videos
+				const videos = payload.videos.results;
 
-			// reset video state
-			setVideoKey('');
+				// reset video state
+				setVideoKey('');
 
-			// check for a valid video
-			if (videos[0]) setVideoKey(`${videos[0].key}`);
-		} catch (error) {
-			console.log(error);
-		}
-	};
+				// check for a valid video
+				if (videos[0]) setVideoKey(`${videos[0].key}`);
+			} catch (error) {
+				console.log(error);
+			}
+		},
+		[id]
+	);
 
 	useEffect(
 		() => {
-			fetchMovieById(id);
+			fetchMovieById();
 		},
-		[id]
+		[fetchMovieById]
 	);
 
 	const renderMoviePoster = () => {
@@ -98,7 +105,7 @@ const MovieDetailContainer = () => {
 	return (
 		<React.Fragment>
 			<Container fixed>
-				<Grow in={!!movie} timeout='auto'>
+				<Grow in={!!movie} timeout={500}>
 					<Paper className={classes.paper}>
 						<Grid container spacing={2}>
 							<Grid item xs={12} md={'auto'}>
