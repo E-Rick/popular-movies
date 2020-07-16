@@ -22,7 +22,7 @@ function App() {
 					<Route path='/:year/movie/:id' component={MovieDetails} />
 					<Switch>
 						<Route path='/:year' component={MoviesListContainer} />
-						<Route exact path='/' component={MoviesListContainer} />
+						<Route path='/' component={MoviesListContainer} />
 					</Switch>
 				</Router>
 			</ThemeProvider>
