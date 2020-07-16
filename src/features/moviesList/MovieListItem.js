@@ -8,7 +8,6 @@ import Typography from '@material-ui/core/Typography';
 import { Link as RouterLink, useParams } from 'react-router-dom';
 import Slide from '@material-ui/core/Slide';
 import PropTypes from 'prop-types';
-import { withRouter } from 'react-router-dom';
 
 const useStyles = makeStyles({
 	root: {
@@ -30,11 +29,12 @@ const useStyles = makeStyles({
 
 const MovieListItem = ({ id, title, poster_path }) => {
 	const classes = useStyles();
-	const { year } = useParams();
+	let { year } = useParams();
+	if (!!year) year = '2020';
 
 	return (
 		<Slide direction='up' in={!!id} mountOnEnter unmountOnExit>
-			<Card className={classes.root}>
+			<Card className={classes.root} key={id}>
 				<CardActionArea component={RouterLink} to={`/${year}/movie/${id}`}>
 					{!!poster_path ? (
 						<CardMedia
@@ -72,4 +72,4 @@ MovieListItem.propTypes = {
 	poster_path: PropTypes.string
 };
 
-export default withRouter(MovieListItem);
+export default MovieListItem;
